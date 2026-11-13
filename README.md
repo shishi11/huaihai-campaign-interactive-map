@@ -6,6 +6,14 @@
 
 ---
 
+## 在线预览
+
+直接打开：**https://shishi11.github.io/huaihai-campaign-interactive-map/**
+
+由 GitHub Pages 从 `main` 分支根目录发布；根目录 `index.html` 只是一个跳转入口，真正的地图仍是单文件 `淮海战役作战态势图.html`，所以线上和离线看到的是同一份文件。
+
+---
+
 ## 快速开始
 
 1. 下载或克隆本仓库；
@@ -26,6 +34,7 @@ cd huaihai-campaign-interactive-map
 ```
 huaihai-campaign-interactive-map/
 ├── 淮海战役作战态势图.html   # 主产物：单文件自包含，双击即用
+├── index.html               # Pages 入口页，只做跳转
 ├── README.md
 ├── assets/
 │   └── echarts.min.js       # ECharts 5.5.0 原库（构建时内联进页面，运行时不加载外链）
