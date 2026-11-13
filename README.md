@@ -2,7 +2,7 @@
 
 一张可交互的淮海战役（1948.11.06 — 1949.01.10）作战态势地图：拖动时间轴或点播放，看两军军标在徐州、碾庄、双堆集、陈官庄之间一步步挪动；点任一军标可读番号、主官、兵力与该日处境，并可切进“兵团视角”跟着它走完一生。
 
-整个项目是**一个自包含的 HTML 文件**（`淮海战役作战态势图.html`），双击即可在浏览器打开，不依赖网络、不依赖构建工具。地图由 Canvas 手绘，图表部分的 ECharts 5.5.0 已内联进文件。
+主线产物是**一个自包含的 HTML 文件**（`淮海战役作战态势图.html`），双击即可在浏览器打开，不依赖网络、不依赖构建工具。地图由 Canvas 手绘，图表部分的 ECharts 5.5.0 已内联进文件。
 
 ---
 
@@ -18,6 +18,24 @@
 git clone https://github.com/shishi11/huaihai-campaign-interactive-map.git
 cd huaihai-campaign-interactive-map
 ```
+
+---
+
+## 目录结构
+
+```
+huaihai-campaign-interactive-map/
+├── 淮海战役作战态势图.html   # 主产物：单文件自包含，双击即用
+├── README.md
+├── assets/
+│   └── echarts.min.js       # ECharts 5.5.0 原库（构建时内联进页面，运行时不加载外链）
+└── _build/
+    ├── appScript.js         # 地图引擎分片（构建期草稿）
+    └── appScript2.js        # 交互层分片（构建期草稿）
+```
+
+- `assets/` 只是库留档：页面已内联，删掉不影响运行。
+- `_build/` 是为分批写入而把页面脚本切开成两段的构建期草稿（地图引擎 / 交互层），后续改动均直接改 HTML，两份分片可能与最终版不同步；以 HTML 内联版为准。
 
 ---
 
