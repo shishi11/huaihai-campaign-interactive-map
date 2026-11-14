@@ -777,7 +777,7 @@ body.fs-lock{overflow:hidden}
       <div class="ops-bar-top">
         <button class="play" id="playBtn" data-on="0" aria-label="播放推演"><span class="ico"></span><span id="playTxt">播放</span></button>
         <div class="seg speedseg" id="segSpeed" role="group" aria-label="播放速度">
-          <button type="button" data-s="0.09" class="on">慢</button><button type="button" data-s="0.18">中</button><button type="button" data-s="0.32">快</button>
+          <button type="button" data-s="0.04" class="on">慢</button><button type="button" data-s="0.12">中</button><button type="button" data-s="0.28">快</button>
         </div>
         <div class="date-read"><span id="dateMain">11月6日</span><span class="dw" id="dateWeek">第 1 天</span></div>
         <div class="phase-chips" id="chips">
@@ -3566,7 +3566,7 @@ function applyDay(d, forceIdx){
 }
 
 /* ---------- 5. 播放 ---------- */
-let playStep=0.09;
+let playStep=0.04;
 function stopPlay(){
   playing=false; clearInterval(timer); timer=null;
   playBtn.dataset.on="0"; playTxt.textContent="播放";
@@ -3587,7 +3587,7 @@ playBtn.addEventListener("click",()=>{ playing? stopPlay() : startPlay(); render
 /* 播放速度：慢 / 中 / 快，随时可换，下一拍即生效 */
 const speedBtns=document.querySelectorAll("#segSpeed button");
 speedBtns.forEach(b=>b.addEventListener("click",()=>{
-  playStep=parseFloat(b.dataset.s)||0.09;
+  playStep=parseFloat(b.dataset.s)||0.04;
   speedBtns.forEach(x=>x.classList.toggle("on",x===b));
 }));
 
@@ -3863,9 +3863,9 @@ cv.addEventListener("pointerleave", hideTip);
 const GEO_WORDS = (H.LINELBL||[]).map(o=>o.t).concat(["津浦路","陇海路","运河","京杭大运河","徐蚌线"]);
 function geoNameIn(txt){
   const t=String(txt).replace(/\s+/g,"");
-  // 「浍河渡口」「淮河铁桥」是点要素，不能再被同名河名吞掉
-  if(t.indexOf("浍河渡口")>=0 || t.indexOf("淮河铁桥")>=0) return null;
-  for(let i=0;i<GEO_WORDS.length;i++) if(t.indexOf(GEO_WORDS[i])>=0) return GEO_WORDS[i];
+  // 词条级调用：只认整词就是河／线名的情况
+  // 「运河站」「运河铁桥」「浍河渡口」都是点要素，不能被同名河名吞掉
+  for(let i=0;i<GEO_WORDS.length;i++) if(t===GEO_WORDS[i]) return GEO_WORDS[i];
   return null;
 }
 /* 词条点击：只闪这一个词指向的部队／地点；悬停显示军事元素信息 */
