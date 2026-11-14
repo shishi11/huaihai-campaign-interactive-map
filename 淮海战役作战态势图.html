@@ -612,6 +612,97 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
   .ops{grid-template-columns:1fr}
   .map-shell{height:520px}
 }
+
+/* ---------- 12. 全屏推演台 ---------- */
+#sandbox .ops, #sandbox .ops > *, #sandbox .ops-side, #sandbox .map-shell{min-width:0}
+.rot-hint{
+  display:none;position:absolute;left:8px;right:8px;bottom:8px;z-index:7;
+  background:rgba(32,29,24,.9);color:#f2ecdd;padding:6px 10px;
+  font-family:var(--sans);font-size:11px;line-height:1.5;letter-spacing:.02em;cursor:pointer;
+}
+@media(max-width:760px) and (orientation:portrait){.rot-hint{display:block}}
+.fsbtn{
+  display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
+  min-height:34px;padding:5px 9px;margin-left:6px;
+  border:1px solid var(--rule-2);background:transparent;color:var(--ink-2);
+  font-family:var(--sans);font-size:11px;letter-spacing:.1em;
+}
+.fsbtn:hover{border-color:var(--ink);color:var(--ink)}
+.fsbtn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.fsbtn svg{width:14px;height:14px;flex:0 0 auto}
+
+/* 原生全屏与降级（iOS 不支持元素全屏时用 fixed 铺满） */
+.ops:fullscreen,.ops:-webkit-full-screen,.ops.fs-fallback{
+  position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;height:100dvh;
+  max-height:none;border:0;background:var(--paper-2);
+  display:grid;grid-template-columns:minmax(0,1fr) clamp(320px,26vw,420px);
+  grid-template-rows:auto auto minmax(0,1fr);
+}
+.ops:fullscreen .ops-bar,.ops.fs-fallback .ops-bar{grid-column:1/-1;position:static;padding:8px 14px 10px}
+.ops:fullscreen .mapopts,.ops.fs-fallback .mapopts{grid-column:1/-1;padding:6px 14px 8px}
+.ops:fullscreen .map-shell,.ops.fs-fallback .map-shell{height:auto;min-height:0}
+.ops:fullscreen .ops-side,.ops.fs-fallback .ops-side{
+  max-height:none;border-top:0;border-left:1px solid var(--rule-2);overflow-y:auto;overscroll-behavior:contain;
+}
+.ops:fullscreen .ev-card.long,.ops.fs-fallback .ev-card.long{max-height:none;overflow:visible}
+.ops:fullscreen .ev-card.long ~ .ev-list,.ops.fs-fallback .ev-card.long ~ .ev-list{max-height:min(160px,26vh)}
+body.fs-lock{overflow:hidden}
+.ops.fs-fallback{transform:translateZ(0);isolation:isolate;box-shadow:0 0 0 100vmax var(--paper)}
+
+@media(max-width:760px){
+  /* 竖屏：地图在上、事件在下；控制条不再压在地图上 */
+  .ops-bar{position:static;padding:8px 10px 10px}
+  .date-read{font-size:19px}
+  .phase-chips{width:100%;margin-left:0;gap:3px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+  .chip{font-size:10.5px;padding:5px 7px;min-height:32px;flex:0 0 auto}
+  .fsbtn{min-height:32px;padding:4px 8px;font-size:10.5px;margin-left:auto;order:2}
+  .phase-chips{order:3}
+  .slider-wrap{margin-top:8px}
+  .slider-wrap .scale{display:none}
+  .mapopts{padding:6px 0 7px}
+  .mapopts .mo-tip{display:none}
+  .map-shell{height:clamp(320px,54vh,470px)}
+  .map-legend,.map-hint{display:none}
+  .map-tools{top:8px;right:8px;gap:4px}
+  .unit-track{
+    left:0;right:0;bottom:0;top:auto;width:auto;max-height:46%;overflow-y:auto;
+    border-left:0;border-right:0;border-bottom:0;box-shadow:0 -3px 0 rgba(32,29,24,.06);
+  }
+  .unit-track .ut-cmd{font-size:11.5px}
+  /* 全屏竖屏：地图占 1fr，事件卡固定下半屏可滚 */
+  .ops:fullscreen,.ops.fs-fallback{
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto minmax(0,1fr) auto;
+    overflow:hidden;
+  }
+  .ops:fullscreen .ops-side,.ops.fs-fallback .ops-side{
+    border-left:0;border-top:1px solid var(--rule-2);overflow-y:auto;
+    max-height:36vh;height:auto;
+  }
+  .ops:fullscreen .unit-track,.ops.fs-fallback .unit-track{max-height:52%}
+}
+
+/* 手机横屏：地图在左、事件在右，控制条压到一行 */
+@media(orientation:landscape) and (max-height:600px){
+  .ops{grid-template-columns:minmax(0,1fr) clamp(280px,40vw,380px);grid-template-rows:auto auto minmax(0,1fr)}
+  .ops-bar{grid-column:1/-1;position:static;padding:6px 10px 8px}
+  .mapopts{grid-column:1/-1;padding:4px 10px 6px}
+  .ops-bar-top{gap:8px}
+  .date-read{font-size:17px}
+  .chip{min-height:30px;font-size:10px;padding:4px 7px}
+  .phase-chips{flex-wrap:nowrap;overflow-x:auto}
+  .slider-wrap{margin-top:6px}
+  .slider-wrap .scale,.mapopts .mo-tip{display:none}
+  .map-shell{height:calc(100vh - 128px);min-height:230px}
+  .ops-side{max-height:none;border-left:1px solid var(--rule-2);border-top:0;overflow-y:auto}
+  .map-legend{display:none}
+  .ev-card{padding:10px 12px 12px}
+  .ev-card h3{font-size:16px;margin:6px 0}
+  .ev-card .body{font-size:13px;line-height:1.8}
+  .ev-hint{display:none}
+  .ops:fullscreen .map-shell,.ops.fs-fallback .map-shell{height:auto;min-height:0}
+  .ops:fullscreen .unit-track,.ops.fs-fallback .unit-track{max-height:52%}
+}
 </style>
 </head>
 <body>
@@ -681,6 +772,9 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
           <button class="chip" data-d="40">第三阶段</button>
           <button class="chip" data-d="66">战役之后</button>
         </div>
+        <button type="button" class="fsbtn" id="fsBtn" aria-pressed="false" title="推演台全屏（事件、地图、时间轴一起）">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fsTxt">全屏</span>
+        </button>
       </div>
       <div class="slider-wrap">
         <div class="scale" id="scale"></div>
@@ -721,6 +815,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
         <div class="lg"><span class="sw ral"></span>铁路</div>
       </div>
       <div class="map-hint" id="mapHint">滚轮缩放 · 拖动平移</div>
+      <div class="rot-hint" id="rotHint">竖屏略窄，横过来或点「全屏」看图更清楚</div>
       <div class="unit-track" id="unitTrack" hidden>
         <div class="ut-top">
           <span class="ut-k" id="utK">—</span>
@@ -3317,6 +3412,50 @@ function startPlay(){
   },90);
 }
 playBtn.addEventListener("click",()=>{ playing? stopPlay() : startPlay(); renderTrack(); });
+
+/* ---------- 全屏推演台：事件卡 + 地图 + 时间轴一起铺满 ---------- */
+const opsBox=document.querySelector("#sandbox .ops");
+const fsBtn=document.getElementById("fsBtn");
+const fsTxt=document.getElementById("fsTxt");
+const fsNative=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+const fsActive=()=>fsNative()||opsBox.classList.contains("fs-fallback");
+function fsUI(on){
+  fsBtn.setAttribute("aria-pressed",on?"true":"false");
+  fsTxt.textContent=on?"退出全屏":"全屏";
+  document.body.classList.toggle("fs-lock",on);
+  setTimeout(()=>{ try{ H.resize(); }catch(e){} },90);
+}
+function fsFallback(on){
+  opsBox.classList.toggle("fs-fallback",on);
+  fsUI(on);
+}
+fsBtn.addEventListener("click",()=>{
+  if(fsNative()){
+    const ex=document.exitFullscreen||document.webkitExitFullscreen;
+    if(ex) ex.call(document);
+    return;
+  }
+  if(opsBox.classList.contains("fs-fallback")){ fsFallback(false); return; }
+  const req=opsBox.requestFullscreen||opsBox.webkitRequestFullscreen;
+  if(req){
+    try{
+      const r=req.call(opsBox,{navigationUI:"hide"});
+      if(r&&r.catch) r.catch(()=>fsFallback(true));
+    }catch(e){ fsFallback(true); }
+  }else{
+    fsFallback(true);
+  }
+});
+document.addEventListener("fullscreenchange",()=>fsUI(fsActive()));
+document.addEventListener("webkitfullscreenchange",()=>fsUI(fsActive()));
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&opsBox.classList.contains("fs-fallback")){ fsFallback(false); }
+});
+const rotHint=document.getElementById("rotHint");
+if(rotHint){
+  let rotTimer=setTimeout(()=>{ rotHint.style.display="none"; },9000);
+  rotHint.addEventListener("click",()=>{ clearTimeout(rotTimer); rotHint.style.display="none"; });
+}
 
 /* ---------- 5.5 事件推进：地图连续演变到下一事件 ---------- */
 const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
