@@ -1926,7 +1926,16 @@ const SUBS = [
   {id:"s9", par:"k3", t:"军", n:"第九军", full:"第十三兵团第九军", cmd:"黄 淑", p:[116.600,33.998], life:[24,65], note:"陈官庄西侧，1.9 随兵团向西突围被顶回。"},
   {id:"s70", par:"k2", t:"军", n:"七十军", full:"第二兵团第七十军", cmd:"高吉人", p:[116.585,34.008], life:[24,65], note:"陈官庄西南，其一三九师在鲁楼连续猛攻五日未克。"},
   {id:"s74", par:"k2", t:"军", n:"七十四军", full:"第二兵团第七十四军", cmd:"邱维达", p:[117.330,34.152], life:[6,16], note:"潘塘遭遇战主力，16 日王塘一处即被歼近千人。"},
-  {id:"s29", par:"p7", t:"师", n:"二十九师", full:"华野第十纵队第二十九师", cmd:"萧 锋", p:[116.638,33.962], life:[24,35], note:"12.4 起守鲁楼，堵住杜聿明集团南突与黄维会合的口子。"}
+  {id:"s29", par:"p7", t:"师", n:"二十九师", full:"华野第十纵队第二十九师", cmd:"萧 锋", p:[116.638,33.962], life:[24,35], note:"12.4 起守鲁楼，堵住杜聿明集团南突与黄维会合的口子。"},
+  {id:"s47", par:"k4", t:"军", n:"四十七军", full:"第十六兵团第四十七军", cmd:"汪匣锋", p:[116.500,33.940], life:[28,31], note:"12.6 夜随兵团向西南突围，军长汪匣锋被俘。"},
+  {id:"s115", par:"k3", t:"军", n:"一一五军", full:"第十三兵团第一一五军（临时加编）", cmd:"司元恺", p:[116.548,34.002], life:[24,65], note:"西撤时临时编入第十三兵团，陈官庄被歼。"},
+  {id:"s39", par:"k6", t:"军", n:"三十九军", full:"第六兵团第三十九军", cmd:"王伯勋", p:[117.220,33.140], life:[4,39], note:"自蚌埠北援，被阻于固镇以北。"},
+  {id:"s54a", par:"k6", t:"军", n:"五十四军", full:"第六兵团第五十四军", cmd:"阙汉骞", p:[117.160,33.240], life:[16,39], note:"一度进至距双堆集不足三十公里，终究没能靠拢。"},
+  {id:"s96", par:"k6", t:"军", n:"九十六军", full:"第六兵团第九十六军", cmd:"于兆龙", p:[117.300,33.100], life:[4,39], note:"北援部队之一，黄维覆灭后随兵团南撤。"},
+  {id:"s99", par:"k6", t:"军", n:"九十九军", full:"第六兵团第九十九军", cmd:"胡长青", p:[117.370,32.970], life:[0,65], note:"留蚌埠归第六兵团指挥，1.16 随兵团撤离时炸毁淮河铁桥。"},
+  {id:"s55", par:"k7", t:"军", n:"五十五军", full:"第八兵团第五十五军", cmd:"曹福林", p:[117.330,33.060], life:[4,39], note:"与李延年并肩北援，进展迟缓。"},
+  {id:"s68", par:"k7", t:"军", n:"六十八军", full:"第八兵团第六十八军", cmd:"刘汝珍", p:[117.280,33.020], life:[4,39], note:"11.26 前后察觉华野南下，先期退过淮河。"},
+  {id:"s12", par:"k2", t:"军", n:"十二军", full:"第二兵团第十二军", cmd:"舒 荣", p:[116.660,33.990], life:[24,65], note:"陈官庄西南，随第二兵团被围。"}
 ];
 
 /* ---------- 附 · 各兵团的意图与命令 ---------- */
@@ -3262,7 +3271,7 @@ const UALIAS = {
   p4:["华野六纵","第六纵队"],
   p5:["华野九纵","第九纵队"],
   p7:["华野七纵、十纵、十一纵","七纵、十纵、十一纵","华野七纵、十纵","十纵"],
-  p8:["苏北兵团"],
+  p8:["苏北兵团","十二纵","第十二纵队"],
   p9:["华野三纵、两广纵队","华野三纵","两广纵队","第三纵队"],
   p10:["中野一、二、三纵","中野一纵","中野二纵","中野三纵","中野主力","中野一纵一部"],
   p11:["中野四纵","中野四纵一部","陈赓"],
@@ -3301,6 +3310,10 @@ Object.keys(UALIAS).forEach(id=>UALIAS[id].forEach(w=>ALIAS.push({id:id,w:w})));
   ALIAS.push({id:sb.id, w:nm});
 });
 ALIAS.sort((a,b)=>b.w.length-a.w.length);
+/* 番号统一按「长的先认」排队：十一纵必须先于一纵、十二纵先于二纵、十三纵先于三纵 */
+const UORDS = ALIAS.map(a=>({w:a.w, id:a.id}))
+  .concat(SIDE.map(s=>({w:s.w, side:s})))
+  .sort((a,b)=>b.w.length-a.w.length);
 const PLAZ=[], PLAZ_SEEN={};
 H.CITIES.forEach(c=>{ const w=c.n.replace(/\s+/g,""); if(!PLAZ_SEEN[w]){ PLAZ_SEEN[w]=1; PLAZ.push({w:w,p:c.p}); } });
 H.TOWNS.forEach(t=>{ const w=t.n.replace(/\s+/g,""); if(!PLAZ_SEEN[w]){ PLAZ_SEEN[w]=1; PLAZ.push({w:w,p:t.p}); } });
@@ -3311,6 +3324,30 @@ const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 let curSents=[];
 
 /* 把一句话拆成可点击段，并标出其中的番号与地名 */
+/* 「一、三、四、六纵」这类顿号并列：逐个数字认人，长的先认，不把「十一纵」读成「一纵」 */
+const ZNUM={"一":{h:"p2",z:"p10"},"二":{h:"p8",z:"p10"},"三":{h:"p9",z:"p10"},
+  "四":{h:"p3",z:"p11"},"六":{h:"p4",z:"p12"},"八":{h:"p3"},
+  "九":{h:"p5",z:"p14"},"十":{h:"p7"},"十一":{h:"p7",z:"p15"},
+  "十二":{h:"p8"},"十三":{h:"p13"}};
+function zongIds(n, txt, ctx){
+  n=String(n).replace(/^第/,"");
+  if(n==="七") return [ /双堆集|大王庄|南集团|尖谷堆/.test(txt) ? "p13" : "p7" ];
+  let m=ZNUM[n]; if(!m) return [];
+  if(ctx.z && !ctx.h) return [m.z||m.h];
+  return [m.h];
+}
+/* 并列里的单个番号：先在军／师／旅／团小队里找，再在兵团别名表里找 */
+function enumIds(part, suffix){
+  const num=String(part).replace(/^第/,""), nm=num+suffix, key="第"+nm;
+  const sb=(H.SUBS||[]).find(x=>String(x.t)===suffix &&
+    String(x.n).replace(/\s+/g,"").replace(/^第/,"")===nm);
+  if(sb) return [sb.id];
+  let out=null;
+  Object.keys(UALIAS).forEach(id=>{
+    if(!out && (UALIAS[id].indexOf(key)>=0 || UALIAS[id].indexOf(nm)>=0)) out=id;
+  });
+  return out? [out] : [];
+}
 function linkify(txt, ctx){
   const used=new Array(txt.length), marks=[];
   const match=(w,id)=>{
@@ -3337,8 +3374,28 @@ function linkify(txt, ctx){
       i=txt.indexOf(w,i+1);
     }
   };
-  ALIAS.forEach(a=>match(a.w,a.id));
-  SIDE.forEach(s=>match(s.w, ctx.z && !ctx.h ? s.Z : s.H));
+  // 先处理顿号并列的「纵／兵团／军／师／旅／团」序列，逐个数字认人
+  const ENUM=/((?:第?[一二三四五六七八九十百]+、)+第?[一二三四五六七八九十百]+)(兵团|军|师|旅|团|纵)/g;
+  let em;
+  while((em=ENUM.exec(txt))!==null){
+    const parts=em[1].split("、"), suffix=em[2], base=em.index;
+    let pos=base;
+    parts.forEach((p,idx)=>{
+      const ids = suffix==="纵" ? zongIds(p, txt, ctx) : enumIds(p, suffix);
+      const len=p.length+(idx===parts.length-1?suffix.length:0);
+      let free=true;
+      for(let k=pos;k<pos+len;k++) if(used[k]){ free=false; break; }
+      if(free && ids.length){
+        marks.push({i:pos,len:len,kind:"u",ids:ids});
+        for(let k=pos;k<pos+len;k++) used[k]=true;
+      }
+      pos+=p.length+1;
+    });
+  }
+  UORDS.forEach(o=>{
+    if(o.side) match(o.w, ctx.z && !ctx.h ? o.side.Z : o.side.H);
+    else match(o.w, o.id);
+  });
   PLAZ.forEach(a=>matchPlace(a.w,a.p));
   marks.sort((a,b)=>a.i-b.i);
   let out="", last=0;
@@ -3347,7 +3404,10 @@ function linkify(txt, ctx){
     out += esc(txt.slice(last,m.i));
     out += '<b class="ent '+m.kind+'">'+esc(txt.slice(m.i,m.i+m.len))+'</b>';
     last=m.i+m.len;
-    if(m.kind==="u"){ if(units.indexOf(m.id)<0) units.push(m.id); }
+    if(m.kind==="u"){
+      const arr = m.ids || [m.id];
+      arr.forEach(id=>{ if(units.indexOf(id)<0) units.push(id); });
+    }
     else places.push(m.p);
   });
   out += esc(txt.slice(last));
