@@ -364,10 +364,20 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
 .ev-card .body .para:last-child{margin-bottom:0}
 .ev-card h3{font-size:clamp(17px,3.6vw,20px);margin:10px 0 8px;letter-spacing:.03em;line-height:1.4}
 .ev-card .body{font-size:14px;line-height:1.95;color:var(--ink-2)}
-.sent{display:inline;cursor:pointer;border-bottom:1px solid transparent;transition:background .15s}
-.sent:hover{border-bottom-color:rgba(156,47,36,.35);background:rgba(156,47,36,.045)}
-.sent.act{border-bottom-color:var(--red);background:rgba(156,47,36,.08)}
-.ent{font-weight:600;border-bottom:1px dotted}
+.sent{display:inline}
+.ent{font-weight:600;border-bottom:1px dotted;cursor:pointer;transition:background .15s}
+.ent:hover{background:rgba(156,47,36,.07)}
+.ent.act{background:rgba(156,47,36,.13);border-bottom-color:var(--red)}
+/* 词条悬停卡：军事元素详情 */
+#entTip{position:fixed;z-index:60;max-width:300px;padding:9px 11px;border-radius:3px;
+  background:rgba(24,21,17,.96);color:#f2ecdd;font-size:11.5px;line-height:1.55;
+  box-shadow:0 6px 18px rgba(0,0,0,.28);pointer-events:none;opacity:0;transition:opacity .12s}
+#entTip.on{opacity:1}
+#entTip b{display:block;font-size:12.5px;color:#e9c98a;letter-spacing:.02em}
+#entTip .sub{display:block;margin-top:2px;color:#b8ae99;font-size:11px}
+#entTip .row{margin-top:5px;color:#e6dfcd}
+#entTip .row em{font-style:normal;color:#9db2a6}
+#entTip .end{margin-top:5px;padding-top:5px;border-top:1px solid rgba(242,236,221,.16);color:#d9b9a6}
 .ent.u{color:var(--red);border-color:rgba(156,47,36,.5)}
 .ent.c{color:#5c5138;border-color:rgba(92,81,56,.55)}
 .ev-hint{
@@ -3402,7 +3412,10 @@ function linkify(txt, ctx){
   const units=[], places=[];
   marks.forEach(m=>{
     out += esc(txt.slice(last,m.i));
-    out += '<b class="ent '+m.kind+'">'+esc(txt.slice(m.i,m.i+m.len))+'</b>';
+    const attr = m.kind==="u"
+      ? ' data-u="'+(m.ids||[m.id]).join("|")+'"'
+      : ' data-p="'+m.p[0]+','+m.p[1]+'"';
+    out += '<b class="ent '+m.kind+'"'+attr+'>'+esc(txt.slice(m.i,m.i+m.len))+'</b>';
     last=m.i+m.len;
     if(m.kind==="u"){
       const arr = m.ids || [m.id];
@@ -3816,33 +3829,80 @@ function geoNameIn(txt){
   for(let i=0;i<GEO_WORDS.length;i++) if(t.indexOf(GEO_WORDS[i])>=0) return GEO_WORDS[i];
   return null;
 }
-evBody.addEventListener("click", e=>{  const s=e.target.closest(".sent"); if(!s) return;
-  const info=curSents[+s.dataset.k]; if(!info) return;
-  const units=[];
-  info.units.forEach(id=>{
-    const u=H.UNITS.find(v=>v.id===id);
-    if(u){
-      if(H.day>=u.life[0] && H.day<=u.life[1]) units.push({id:id, s:u.s, p:H.pathPos(u,H.day)});
-      return;
-    }
-    // 军／师／团／营级小队：位置固定，按它在图上的存活区间判定
-    const sb=(H.SUBS||[]).find(v=>v.id===id);
-    if(sb && H.day>=sb.life[0]-0.001 && H.day<=sb.life[1]+0.001){
-      const q = typeof sb.p==="string" ? (H.P[sb.p]||null) : sb.p;
-      if(q) units.push({id:id, s: sb.par.charAt(0)==="p"?"p":"k", p:q});
-    }
-  });
-  const pts=units.map(o=>o.p).concat(info.places);
-  // 句子里出现河名／线名（浍河、津浦线、徐永公路…）时，让图上那条线自己也闪一下
-  const gname = geoNameIn(s.textContent);
-  if(gname) H.flashGeo(gname);          // 正文提到的河、路：线条与名称一起闪
-  if(!pts.length){ if(!gname) return; }
-  Array.prototype.forEach.call(evBody.querySelectorAll(".sent"), x=>x.classList.remove("act"));
-  s.classList.add("act");
-  hideTip();
-  H.flashAt(units, info.places);
-  H.focus(pts);
+/* 词条点击：只闪这一个词指向的部队／地点；悬停显示军事元素信息 */
+function unitCard(id){
+  const u=H.UNITS.find(v=>v.id===id);
+  if(u) return {n:u.n, full:u.full, cmd:u.cmd, str:u.str, note:u.note, end:u.fate||u.after||""};
+  const sb=(H.SUBS||[]).find(v=>v.id===id);
+  if(sb) return {n:sb.n, full:sb.full, cmd:sb.cmd, str:("分队 · "+sb.t), note:sb.note, end:sb.etype?("结局："+sb.etype):""};
+  return null;
+}
+function unitPin(id){
+  const u=H.UNITS.find(v=>v.id===id);
+  if(u){
+    const dd=Math.min(Math.max(H.day,u.life[0]),u.life[1]);
+    return {id:id, s:u.s, p:H.pathPos(u,dd)};
+  }
+  const sb=(H.SUBS||[]).find(v=>v.id===id);
+  if(sb){
+    const q=typeof sb.p==="string" ? (H.P[sb.p]||null) : sb.p;
+    if(q) return {id:id, s:sb.par.charAt(0)==="p"?"p":"k", p:q};
+  }
+  return null;
+}
+evBody.addEventListener("click", e=>{
+  const el=e.target.closest("#evBody .ent"); if(!el) return;
+  hideEntTip();
+  Array.prototype.forEach.call(evBody.querySelectorAll(".ent"), x=>x.classList.remove("act"));
+  el.classList.add("act");
+  const ids=(el.getAttribute("data-u")||"").split("|").filter(Boolean);
+  const pv=(el.getAttribute("data-p")||"").split(",").filter(Boolean).map(Number);
+  const units=ids.map(unitPin).filter(Boolean);
+  const places = (pv.length===2 && !isNaN(pv[0])) ? [[pv[0],pv[1]]] : [];
+  const gname = places.length ? geoNameIn(el.textContent) : null;
+  if(gname) H.flashGeo(gname);
+  const pts=units.map(o=>o.p).concat(gname?[]:places);
+  if(units.length) H.flashAt(units, gname?[]:places);
+  else if(places.length && !gname) H.flashAt([], places);
+  if(pts.length) H.focus(pts);
 });
+
+/* 悬停卡：主官、编制、当日位置说明与结局 */
+const entTip=(function(){ const d=document.createElement("div"); d.id="entTip"; document.body.appendChild(d); return d; })();
+function hideEntTip(){ entTip.classList.remove("on"); }
+evBody.addEventListener("pointerover", e=>{
+  const el=e.target.closest("#evBody .ent.u"); if(!el) return;
+  const ids=(el.getAttribute("data-u")||"").split("|").filter(Boolean);
+  if(!ids.length) return;
+  const cards=ids.map(unitCard).filter(Boolean);
+  if(!cards.length) return;
+  let h="";
+  cards.forEach(c=>{
+    h+="<b>"+esc(c.n)+"</b><span class='sub'>"+esc(c.full||"")+"</span>";
+    h+="<div class='row'><em>主官</em> "+esc(c.cmd||"—")+(c.str?"　<em>编制</em> "+esc(c.str):"")+"</div>";
+    if(c.note) h+="<div class='row'>"+esc(c.note)+"</div>";
+    if(c.end) h+="<div class='end'>"+esc(c.end)+"</div>";
+  });
+  entTip.innerHTML=h;
+  entTip.classList.add("on");
+  const r=entTip.getBoundingClientRect();
+  let lx=e.clientX+14, ly=e.clientY+16;
+  if(lx+r.width>document.documentElement.clientWidth-8) lx=Math.max(8,e.clientX-r.width-14);
+  if(ly+r.height>document.documentElement.clientHeight-8) ly=Math.max(8,e.clientY-r.height-12);
+  entTip.style.left=lx+"px"; entTip.style.top=ly+"px";
+});
+evBody.addEventListener("pointermove", e=>{
+  if(!entTip.classList.contains("on")) return;
+  if(!e.target.closest("#evBody .ent.u")) return;
+  const r=entTip.getBoundingClientRect();
+  let lx=e.clientX+14, ly=e.clientY+16;
+  if(lx+r.width>document.documentElement.clientWidth-8) lx=Math.max(8,e.clientX-r.width-14);
+  if(ly+r.height>document.documentElement.clientHeight-8) ly=Math.max(8,e.clientY-r.height-12);
+  entTip.style.left=lx+"px"; entTip.style.top=ly+"px";
+});
+evBody.addEventListener("pointerout", e=>{ if(e.target.closest("#evBody .ent.u")) hideEntTip(); });
+evBody.addEventListener("scroll", hideEntTip, true);
+document.addEventListener("pointerdown", e=>{ if(!e.target.closest("#evBody .ent.u")) hideEntTip(); });
 
 /* ---------- 7.6 兵团视角追踪 ---------- */
 function cmdFor(id, day){
