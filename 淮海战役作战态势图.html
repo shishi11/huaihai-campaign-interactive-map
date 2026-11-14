@@ -249,6 +249,8 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
   color:var(--ink-2);cursor:pointer;
 }
 .seg button:last-child{border-right:0}
+.speedseg{margin-left:2px}
+.speedseg button{padding:2px 8px;font-size:10.5px}
 .seg button.on{background:var(--red);color:#f7f2e6}
 .seg button:hover:not(.on){background:rgba(32,29,24,.06)}
 .mapopts .mo-tip{color:var(--ink-3);opacity:.85;letter-spacing:.02em}
@@ -369,7 +371,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:0;backg
 .ent:hover{background:rgba(156,47,36,.07)}
 .ent.act{background:rgba(156,47,36,.13);border-bottom-color:var(--red)}
 /* 词条悬停卡：军事元素详情 */
-#entTip{position:fixed;z-index:60;max-width:300px;padding:9px 11px;border-radius:3px;
+#entTip{position:fixed;z-index:90;max-width:300px;padding:9px 11px;border-radius:3px;
   background:rgba(24,21,17,.96);color:#f2ecdd;font-size:11.5px;line-height:1.55;
   box-shadow:0 6px 18px rgba(0,0,0,.28);pointer-events:none;opacity:0;transition:opacity .12s}
 #entTip.on{opacity:1}
@@ -774,6 +776,9 @@ body.fs-lock{overflow:hidden}
     <div class="ops-bar">
       <div class="ops-bar-top">
         <button class="play" id="playBtn" data-on="0" aria-label="播放推演"><span class="ico"></span><span id="playTxt">播放</span></button>
+        <div class="seg speedseg" id="segSpeed" role="group" aria-label="播放速度">
+          <button type="button" data-s="0.09" class="on">慢</button><button type="button" data-s="0.18">中</button><button type="button" data-s="0.32">快</button>
+        </div>
         <div class="date-read"><span id="dateMain">11月6日</span><span class="dw" id="dateWeek">第 1 天</span></div>
         <div class="phase-chips" id="chips">
           <button class="chip" data-d="-26">战役准备</button>
@@ -1533,7 +1538,7 @@ const P = {
   蚌埠:[117.36,32.92], 合肥:[117.28,31.86], 确山:[114.03,32.80],
   大王庄:[116.93,33.42], 尖谷堆:[116.96,33.43],
   /* 详述里点到、需要在图上落点的渡口、村落与据点 */
-  浍河渡口:[116.868,33.575], 运河车站:[117.96,34.31],
+  浍河渡口:[116.868,33.556], 运河车站:[117.96,34.31],
   张公店:[115.90,34.40], 马头:[118.29,34.62], 王塘:[117.34,34.16],
   何集:[117.14,33.22], 陆集:[117.06,33.16], 张庙堂:[116.585,33.995],
   小院上:[117.755,34.355], 杨围子:[116.985,33.475], 鲁楼:[116.63,33.955],
@@ -1548,7 +1553,7 @@ const RIVERS = [
   {n:"黄河故道", w:1.7, pts:[[115.40,34.44],P.商丘,P.砀山,P.黄口,P.徐州,[117.55,34.30],P.运河站,[118.15,34.36]]},
   {n:"淮河", w:1.9, pts:[[115.45,32.55],[115.81,32.89],[116.44,32.68],P.蚌埠,[117.90,32.95],[118.55,33.25]]},
   {n:"涡河", w:1.3, pts:[[115.55,34.00],P.亳县,P.涡阳,P.蒙城,[117.15,32.88]]},
-  {n:"浍河", w:1.3, pts:[[115.75,34.15],P.永城,[116.90,33.72],P.固镇,[117.55,33.20]]},
+  {n:"浍河", w:1.3, pts:[[115.75,34.15],P.永城,[116.90,33.60],[116.868,33.556],P.固镇,[117.55,33.20]]},
   {n:"颍河", w:1.3, pts:[[115.60,33.55],P.阜阳,[116.35,32.62]]},
   {n:"北淝河", w:1.1, pts:[[116.30,33.55],P.双堆集,[116.98,33.10],[117.20,32.98]]},
   /* 不老河：碾庄圩以西二三十公里，山东兵团南下先越此河 */
@@ -1636,7 +1641,7 @@ const CITIES = [
   {n:"蚌 埠", p:P.蚌埠, big:1},
   {n:"新安镇", p:P.新安镇},
   {n:"宿 县", p:P.宿县, big:1},
-  {n:"碾 庄", p:P.碾庄, key:1},
+  {n:"碾庄圩", p:P.碾庄, key:1},
   {n:"双堆集", p:P.双堆集, key:1},
   {n:"陈官庄", p:P.陈官庄, key:1},
   {n:"商 丘", p:P.商丘},
@@ -1650,7 +1655,7 @@ const CITIES = [
   {n:"窑 湾", p:P.窑湾, key:1},
   {n:"曹八集", p:P.曹八集},
   {n:"大许家", p:P.大许家},
-  {n:"运河站", p:P.运河站, o:[-4,14], top:1},
+  {n:"运河站", p:P.运河站, o:[-56,3], top:1},
   {n:"符离集", p:P.符离集},
   {n:"固 镇", p:P.固镇},
   {n:"蒙 城", p:P.蒙城},
@@ -2450,10 +2455,10 @@ function drawBridges(){
       return;
     }
     const tw=ctx.measureText(b.n).width, bh=(OPT.base==="fine"?24:14);
-    let lx=Math.min(W-tw-14, Math.max(14, x+15*k)), ly=Math.max(14, y-13*k);
+    let lx=Math.min(W-tw-14, Math.max(14, x+11*k)), ly=Math.min(H-8, Math.max(22, y+17*k));
     ctx.strokeStyle="rgba(32,29,24,.34)"; ctx.lineWidth=.9;
     ctx.beginPath();
-    ctx.moveTo(x+half, y-2*k); ctx.lineTo(lx-1, ly+2);
+    ctx.moveTo(x+half, y+1.5*k); ctx.lineTo(lx-1, ly-8);
     ctx.stroke();
     ctx.fillStyle="rgba(242,236,221,.95)";
     ctx.fillRect(lx-2.5, ly-9, tw+5, bh);
@@ -2555,7 +2560,7 @@ function drawGeoLabels(){
 /* 被围地区 */
 function zones(day){
   const out=[];
-  if(day>=4 && day<=17) out.push({c:P.碾庄, r:0.075, t:"碾庄圩", sub:"黄百韬兵团", op: day>16? Math.max(0,1-(day-16)/2):1});
+  if(day>=4 && day<=17) out.push({c:P.碾庄, r:0.075, t:"黄百韬兵团部", sub:"碾庄圩", op: day>16? Math.max(0,1-(day-16)/2):1});
   if(day>=19 && day<=41) out.push({c:P.双堆集, r:0.08, t:"双堆集", sub:"黄维兵团", op: day>39? Math.max(0,1-(day-39)/2):1});
   if(day>=28 && day<=65) out.push({c:P.陈官庄, r:0.12, t:"陈官庄", sub:"杜聿明集团", op: day>63? Math.max(0,1-(day-63)/2):1});
   return out;
@@ -3561,6 +3566,7 @@ function applyDay(d, forceIdx){
 }
 
 /* ---------- 5. 播放 ---------- */
+let playStep=0.09;
 function stopPlay(){
   playing=false; clearInterval(timer); timer=null;
   playBtn.dataset.on="0"; playTxt.textContent="播放";
@@ -3572,12 +3578,18 @@ function startPlay(){
   const lo = soloU? soloU.life[0] : -2, hi = soloU? soloU.life[1] : H.DAY_MAX;
   if(H.day>=hi || H.day<lo) applyDay(lo);
   timer=setInterval(()=>{
-    const d=H.day+0.22;
+    const d=H.day+playStep;
     if(d>=hi){ applyDay(hi); stopPlay(); return; }
     applyDay(d);
   },90);
 }
 playBtn.addEventListener("click",()=>{ playing? stopPlay() : startPlay(); renderTrack(); });
+/* 播放速度：慢 / 中 / 快，随时可换，下一拍即生效 */
+const speedBtns=document.querySelectorAll("#segSpeed button");
+speedBtns.forEach(b=>b.addEventListener("click",()=>{
+  playStep=parseFloat(b.dataset.s)||0.09;
+  speedBtns.forEach(x=>x.classList.toggle("on",x===b));
+}));
 
 /* ---------- 全屏推演台：事件卡 + 地图 + 时间轴一起铺满 ---------- */
 const opsBox=document.querySelector("#sandbox .ops");
@@ -3895,7 +3907,14 @@ evBody.addEventListener("click", e=>{
 });
 
 /* 悬停卡：主官、编制、当日位置说明与结局 */
-const entTip=(function(){ const d=document.createElement("div"); d.id="entTip"; document.body.appendChild(d); return d; })();
+const entTip=(function(){ const d=document.createElement("div"); d.id="entTip"; (document.querySelector("#sandbox .ops")||document.body).appendChild(d); return d; })();
+/* 全屏（原生或 .fs-fallback 铺满）时只有推演台容器内的节点在最上层：浮卡必须挂进该容器 */
+function tipHost(){
+  const fs=document.fullscreenElement||document.webkitFullscreenElement||document.querySelector("#sandbox .ops");
+  if(fs && !fs.contains(entTip)) fs.appendChild(entTip);
+}
+document.addEventListener("fullscreenchange",()=>{ hideEntTip(); tipHost(); });
+document.addEventListener("webkitfullscreenchange",()=>{ hideEntTip(); tipHost(); });
 function hideEntTip(){ entTip.classList.remove("on"); }
 evBody.addEventListener("pointerover", e=>{
   const el=e.target.closest("#evBody .ent.u"); if(!el) return;
@@ -3911,6 +3930,7 @@ evBody.addEventListener("pointerover", e=>{
     if(c.end) h+="<div class='end'>"+esc(c.end)+"</div>";
   });
   entTip.innerHTML=h;
+  tipHost();
   entTip.classList.add("on");
   const r=entTip.getBoundingClientRect();
   let lx=e.clientX+14, ly=e.clientY+16;
